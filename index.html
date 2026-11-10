@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 待办本</title>
+  <link rel="stylesheet" href="style.css" />
+</head>   
+<body>
+  <!-- 页头：放标题，一个页面只能有一个 header 在顶层 -->
+  <header class="site-head">
+    <h1>AI 待办本</h1>
+    <p class="tagline">说一句话，它帮你记下来</p>
+  </header>
+
+  <!-- 导航：两个 Tab，用 button 而不是 div，能键盘聚焦 -->
+  <nav class="tabs">
+    <button class="tab active" data-panel="todo">待办清单</button>
+    <button class="tab" data-panel="about">关于</button>
+  </nav>
+
+  <!-- 主体：所有正文内容都放 main 里 -->
+  <main>
+    <section id="todo" class="panel active">
+      <form id="add-form">
+        <input id="title" type="text" placeholder="比如：明天交实验报告" />
+        <button type="submit">添加</button>
+      </form>
+      <p id="error" class="error"></p>
+      <ul id="list"></ul>
+    </section>
+
+    <section id="about" class="panel">
+      <h2>这个项目是什么</h2>
+      <p>26 级第四阶段作品：一个能存数据、能对话的待办清单。</p>
+    </section>
+  </main>
+
+  <footer class="site-foot">26 级第四阶段 · 我的第一个线上应用</footer>
+  <script src="app.js"></script>
+</body>
+</html>

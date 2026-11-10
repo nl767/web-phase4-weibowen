@@ -1,0 +1,41 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, "Microsoft YaHei", sans-serif;
+  background: #f6f7fb;
+  color: #1f2329;
+}
+
+.site-head { padding: 28px 20px 18px; background: #1f3864; color: #fff; }
+.site-head h1 { margin: 0; font-size: 24px; }
+.tagline { margin: 6px 0 0; font-size: 14px; opacity: .8; }
+
+.tabs { display: flex; gap: 8px; padding: 12px 20px 0; }
+.tab {
+  border: 1px solid #d6dbe3; background: #fff; cursor: pointer;
+  padding: 8px 14px; border-radius: 8px 8px 0 0; font-size: 14px;
+}
+.tab.active { background: #1f3864; color: #fff; border-color: #1f3864; }
+
+main { padding: 16px 20px 40px; }
+.panel { display: none; background: #fff; border-radius: 12px; padding: 18px; }
+.panel.active { display: block; }
+
+#add-form { display: flex; gap: 8px; }
+#title { flex: 1; padding: 10px; border: 1px solid #d6dbe3; border-radius: 8px; font-size: 15px; }
+#add-form button { padding: 10px 18px; border: 0; border-radius: 8px; background: #2e5c8a; color: #fff; font-size: 15px; }
+.error { color: #c00000; font-size: 13px; min-height: 18px; margin: 8px 0 0; }
+
+#list { list-style: none; padding: 0; margin: 12px 0 0; }
+#list li { padding: 10px 12px; border: 1px solid #e6e9ef; border-radius: 8px; margin-bottom: 8px; }
+#list li.done { color: #999; text-decoration: line-through; }
+#list li.empty { color: #999; text-align: center; border-style: dashed; }
+.site-foot { text-align: center; color: #8a94a6; font-size: 12px; padding: 20px 0 30px; }
+
+/* 响应式：窗口 ≤ 480px（含 375px 的手机）时，输入框和按钮改成竖排 */
+@media (max-width: 480px) {
+  #add-form { flex-direction: column; }
+  .site-head h1 { font-size: 20px; }
+  main { padding: 12px 12px 30px; }
+}
