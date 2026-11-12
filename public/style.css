@@ -39,3 +39,13 @@ main { padding: 16px 20px 40px; }
   .site-head h1 { font-size: 20px; }
   main { padding: 12px 12px 30px; }
 }
+/* Day3：列表项改成左右布局，加删除按钮样式 */
+#list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.del {
+  border: 0; background: #c00000; color: #fff; cursor: pointer;
+  border-radius: 6px; padding: 4px 10px; font-size: 13px; flex-shrink: 0;
+}
+.retry {
+  margin-top: 8px; border: 1px solid #d6dbe3; background: #fff;
+  border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px;
+}

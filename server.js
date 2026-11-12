@@ -1,5 +1,6 @@
 // server.js —— 一个最小的「待办」后端
 const express = require("express");
+const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 
@@ -7,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;          // 部署到云上时，平台会给它一个端口
 const DB = path.join(__dirname, "data.json");   // 数据文件放在项目根目录
 
+app.use(cors()); 
 app.use(express.json());            // 中间件：把请求体里的 JSON 解析成 req.body
 app.use(express.static("public"));  // 中间件：把 public 目录当静态网站发布（Day3 用）
 
