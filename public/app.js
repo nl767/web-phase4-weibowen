@@ -3,6 +3,17 @@ const listEl = document.getElementById("list");
 const errEl = document.getElementById("error");
 const formEl = document.getElementById("add-form");
 const inputEl = document.getElementById("title");
+// ---------- Tab 切换 ----------
+document.querySelectorAll(".tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    // 先全部撤销
+    document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+    // 再授予自己
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.panel).classList.add("active");
+  });
+});
 
 // ---------- 渲染三态：加载中 / 空 / 有数据 ----------
 function showLoading() {

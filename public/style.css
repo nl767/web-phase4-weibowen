@@ -49,3 +49,14 @@ main { padding: 16px 20px 40px; }
   margin-top: 8px; border: 1px solid #d6dbe3; background: #fff;
   border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px;
 }
+.messages { min-height: 220px; max-height: 380px; overflow-y: auto; margin-bottom: 12px; }
+.msg { padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; line-height: 1.5; font-size: 14px; white-space: pre-wrap; }
+.msg.user { background: #eaf1fa; margin-left: 48px; }
+.msg.ai { background: #f4f6f8; margin-right: 48px; }
+.chat-form { display: flex; gap: 8px; }
+#chat-input { flex: 1; padding: 10px; border: 1px solid #d6dbe3; border-radius: 8px; }
+#send-btn, #stop-btn { padding: 10px 16px; border: 0; border-radius: 8px; cursor: pointer; }
+#send-btn { background: #2e5c8a; color: #fff; }
+#stop-btn { background: #e6e9ef; color: #333; }
+#stop-btn:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 480px) { .chat-form { flex-wrap: wrap; } }

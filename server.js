@@ -1,4 +1,5 @@
 // server.js —— 一个最小的「待办」后端
+require("dotenv").config();   // 必须在最上面
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -66,7 +67,70 @@ app.delete("/api/items/:id", (req, res) => {
   saveAll(next);
   res.json(ok({ id }));
 });
+// ---------- 接口 4：流式对话（Key 只在这里出现） ----------
+app.post("/api/chat", async (req, res) => {
+  const { messages } = req.body || {};
 
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json(fail(400, "messages 必须是非空数组"));
+  }
+
+  const system = {
+    role: "system",
+    content:
+      "你是「AI 待办本」的助手，帮用户记录和查询待办。\n" +
+      "规则：1) 回答用中文，简短，不超过 3 句；2) 不编造用户没说过的事；\n" +
+      "3) 遇到与待办无关的问题，也可以回答，但不要假装自己能上网；4) 不确定就说不知道。",
+  };
+
+  const history = [system, ...messages.slice(-12)];
+
+  try {
+    const upstream = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + process.env.DEEPSEEK_API_KEY,
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: history,
+        stream: true,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!upstream.ok) {
+      const text = await upstream.text();
+      const map = {
+        401: "API Key 不正确或已失效，请检查 .env",
+        402: "账户余额不足，请去平台充值",
+        429: "请求太频繁（限流），等 10 秒再试",
+        500: "模型服务临时故障，稍后再试",
+      };
+      console.error("[upstream]", upstream.status, text.slice(0, 200));
+      return res
+        .status(upstream.status)
+        .json(fail(upstream.status, map[upstream.status] || "模型服务出错"));
+    }
+
+    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const reader = upstream.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      res.write(decoder.decode(value, { stream: true }));
+    }
+    res.end();
+  } catch (e) {
+    console.error("[chat]", e);
+    res.status(500).json(fail(500, "连接模型失败，检查服务器网络"));
+  }
+});
 // ---------- 兜底：404 和 500 必须放在所有路由之后 ----------
 app.use((req, res) => res.status(404).json(fail(404, "接口不存在：" + req.path)));
 

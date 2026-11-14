@@ -16,9 +16,10 @@
 
   <!-- 导航：两个 Tab，用 button 而不是 div，能键盘聚焦 -->
   <nav class="tabs">
-    <button class="tab active" data-panel="todo">待办清单</button>
-    <button class="tab" data-panel="about">关于</button>
-  </nav>
+  <button class="tab active" data-panel="todo">待办清单</button>
+  <button class="tab" data-panel="about">关于</button>
+  <button class="tab" data-panel="chat">AI 助手</button>   <!-- 新增 -->
+</nav>
 
   <!-- 主体：所有正文内容都放 main 里 -->
   <main>
@@ -35,11 +36,20 @@
       <h2>这个项目是什么</h2>
       <p>26 级第四阶段作品：一个能存数据、能对话的待办清单。</p>
     </section>
+
+    <section id="chat" class="panel">
+      <div id="messages" class="messages"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" type="text" placeholder="说点什么，比如：我还有哪些待办？" />
+        <button type="submit" id="send-btn">发送</button>
+        <button type="button" id="stop-btn" disabled>停止</button>
+      </form>
+    </section>
   </main>
 
   <footer class="site-foot">26 级第四阶段 · 我的第一个线上应用</footer>
 <script src="config.js"></script>
 <script src="app.js"></script>
-<script src="app.js"></script>
+<script src="chat.js"></script>      
 </body>
 </html>
