@@ -60,3 +60,8 @@ main { padding: 16px 20px 40px; }
 #stop-btn { background: #e6e9ef; color: #333; }
 #stop-btn:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 480px) { .chat-form { flex-wrap: wrap; } }
+.debug { margin-bottom: 10px; font-size: 13px; }
+.debug summary { cursor: pointer; color: #2e5c8a; }
+.debug pre { background: #f4f6f8; padding: 10px; border-radius: 8px; white-space: pre-wrap; max-height: 200px; overflow: auto; }
+#agent-btn { background: #1f3864; color: #fff; }
+#agent-btn:disabled { opacity: .45; cursor: not-allowed; }

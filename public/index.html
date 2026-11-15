@@ -38,13 +38,18 @@
     </section>
 
     <section id="chat" class="panel">
-      <div id="messages" class="messages"></div>
-      <form id="chat-form" class="chat-form">
-        <input id="chat-input" type="text" placeholder="说点什么，比如：我还有哪些待办？" />
-        <button type="submit" id="send-btn">发送</button>
-        <button type="button" id="stop-btn" disabled>停止</button>
-      </form>
-    </section>
+  <div id="messages" class="messages"></div>
+
+  <details class="debug">
+    <summary>调试面板（工具调用轨迹）</summary>
+    <pre id="trace"></pre>
+  </details>
+<form id="chat-form" class="chat-form">
+    <input id="chat-input" type="text" placeholder="说点什么，比如：我还有哪些待办？" />
+    <button type="submit" id="send-btn">发送</button>
+    <button type="button" id="agent-btn">让它做</button>
+    <button type="button" id="stop-btn" disabled>停止</button>
+  </form>
   </main>
 
   <footer class="site-foot">26 级第四阶段 · 我的第一个线上应用</footer>

@@ -99,3 +99,46 @@ chatForm.addEventListener("submit", async (e) => {
 stopBtn.addEventListener("click", () => {
   if (controller) controller.abort();      // 触发 AbortError
 });
+async function askAgent(text) {
+  const res = await fetch(API_BASE + "/api/agent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text }),
+  });
+  const json = await res.json();
+  if (json.code !== 0) {
+    document.getElementById("trace").textContent = "出错：" + json.msg;
+    return;
+  }
+  document.getElementById("trace").textContent = json.data.trace
+    .map((t, i) =>
+      "#" + (i + 1) + " 工具：" + t.tool +
+      "\n    参数：" + JSON.stringify(t.args) +
+      "\n    结果：" + JSON.stringify(t.result).slice(0, 200)
+    )
+    .join("\n\n") || "（这一轮没有调用工具）";
+  return json.data.answer;
+}
+// ---------- 「让它做」：走 /api/agent，会真的改数据 ----------
+const agentBtn = document.getElementById("agent-btn");
+
+agentBtn.addEventListener("click", async () => {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  addMsg("user", text);
+  chatInput.value = "";
+
+  const bubble = addMsg("assistant", "思考中…");
+  agentBtn.disabled = true;
+
+  try {
+    const answer = await askAgent(text);
+    bubble.textContent = answer || "（没有返回内容）";
+    loadItems();          // 刷新待办列表，让用户亲眼看到数据变了
+  } catch (e) {
+    bubble.textContent = "出错了：" + e.message;
+  } finally {
+    agentBtn.disabled = false;
+  }
+});

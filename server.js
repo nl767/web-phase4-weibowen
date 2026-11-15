@@ -131,6 +131,162 @@ app.post("/api/chat", async (req, res) => {
     res.status(500).json(fail(500, "连接模型失败，检查服务器网络"));
   }
 });
+
+// ---------- 工具定义（description 一定要写清楚「什么时候用」） ----------
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "add_item",
+      description:
+  "新增一条待办事项。当用户表达「记一下 / 帮我加一条 / 提醒我 / 别忘了」时，必须调用这个工具，不要只口头答应。",
+      parameters: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description: "待办内容，尽量保留用户原话，例如「明天交实验报告」",
+          },
+        },
+        required: ["title"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "query_items",
+      description:
+        "按关键字查询待办列表。当用户问「我还有哪些事 / 有没有关于作业的 / 列出全部」时调用。",
+      parameters: {
+        type: "object",
+        properties: {
+          keyword: { type: "string", description: "查询关键字；空字符串表示查全部" },
+        },
+        required: ["keyword"],
+      },
+    },
+  },
+];
+// ---------- 工具的真实执行（改数据库就在这几行） ----------
+// ---------- 工具的真实执行（改数据库就在这几行） ----------
+function runTool(name, args) {
+  if (name === "add_item") {
+    const title = String(args.title || "").trim();
+    if (!title) return { ok: false, error: "title 不能为空" };
+
+    const list = readAll();
+
+    // 去重：已经有同名且未完成的，就不再加一条
+    const dup = list.find((it) => !it.done && it.title === title);
+    if (dup) {
+      return {
+        ok: false,
+        duplicated: true,
+        error: "该待办已存在，本次没有添加",
+        item: dup,
+        total: list.length,
+      };
+    }
+
+    const item = { id: Date.now(), title: title.slice(0, 100), done: false };
+    list.push(item);
+    saveAll(list);
+    return { ok: true, item, total: list.length };
+  }
+
+  if (name === "query_items") {
+    const kw = String(args.keyword || "");
+    const all = readAll();
+    const items = kw ? all.filter((it) => it.title.includes(kw)) : all;
+    return { ok: true, total: items.length, items: items.slice(0, 20) };
+  }
+
+  return { ok: false, error: "未知工具：" + name };
+}
+// ---------- 接口 5：带工具调用的对话 ----------
+app.post("/api/agent", async (req, res) => {
+  const { message } = req.body || {};
+  if (!message || typeof message !== "string") {
+    return res.status(400).json(fail(400, "message 必填"));
+  }
+
+  const messages = [
+    {
+      role: "system",
+     content:
+  "你是「AI 待办本」的助手。规则：\n" +
+  "1) 用户要记事情、加待办时，必须调用 add_item，不要只说「好的」；\n" +
+  "2) 用户要查看、询问有哪些待办时，必须调用 query_items；\n" +
+  "3) 如果工具返回 duplicated: true，要明确告诉用户「这条已经存在，没有重复添加」；\n" +   // ← 新增
+  "4) 拿到工具结果后，用一句中文告诉用户实际发生了什么。",
+    },
+    { role: "user", content: message },
+  ];
+
+  const trace = [];          // 给前端调试面板看的「调用轨迹」
+
+  try {
+    // 最多循环 3 轮，防止模型死循环把额度烧光
+    for (let round = 0; round < 3; round++) {
+      const r = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + process.env.DEEPSEEK_API_KEY,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: messages,
+          tools: TOOLS,
+          tool_choice: "auto",       // 让模型自己决定调不调
+        }),
+      });
+
+      const j = await r.json();
+      if (!r.ok) {
+        const map = { 401: "Key 不对", 402: "余额不足", 429: "限流了" };
+        return res.status(r.status).json(fail(r.status, map[r.status] || "模型出错"));
+      }
+
+      const msg = j.choices[0].message;
+      messages.push(msg);            // 关键：把模型的「我要调工具」也存进历史
+
+      // 没有 tool_calls = 模型认为不需要工具，直接给答案，结束
+      if (!msg.tool_calls || msg.tool_calls.length === 0) {
+        return res.json(ok({ answer: msg.content, trace }));
+      }
+
+      // 有 tool_calls：逐个执行，再把结果塞回 messages
+      for (const call of msg.tool_calls) {
+        let args = {};
+        let parseError = null;
+        try {
+          args = JSON.parse(call.function.arguments || "{}");
+        } catch (e) {
+          parseError = "模型给的参数不是合法 JSON：" + call.function.arguments;
+        }
+
+        const result = parseError
+          ? { ok: false, error: parseError }
+          : runTool(call.function.name, args);
+
+        trace.push({ tool: call.function.name, args: args, result: result });
+
+        messages.push({
+          role: "tool",
+          tool_call_id: call.id,          // 必须原样带回这个 id，模型才认得出是哪次调用
+          content: JSON.stringify(result),
+        });
+      }
+    }
+
+    return res.json(ok({ answer: "工具调用轮数超过上限，已停止。", trace: trace }));
+  } catch (e) {
+    console.error("[agent]", e);
+    res.status(500).json(fail(500, "调用失败：" + e.message));
+  }
+});
 // ---------- 兜底：404 和 500 必须放在所有路由之后 ----------
 app.use((req, res) => res.status(404).json(fail(404, "接口不存在：" + req.path)));
 
