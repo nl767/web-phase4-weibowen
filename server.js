@@ -75,10 +75,10 @@ app.post("/api/chat", async (req, res) => {
     return res.status(400).json(fail(400, "messages 必须是非空数组"));
   }
 
-  const system = {
+      const system = {
     role: "system",
     content:
-       "你是「AI 待办本」的聊天助手。\n" +
+      "你是「AI 待办本」的聊天助手，由 DeepSeek 的 deepseek-chat 模型驱动，运行在用户自己部署的 Node 服务上。\n" +   // ← 新增
       "重要：你没有读写待办清单的权限，不能真的添加、删除或查询待办。\n" +
       "当用户要求添加、删除或查看待办时，必须明确回答：" +
       "「这件事请点『让它做』按钮，我才能真的操作你的待办清单」，绝不要假装已经完成。\n" +
@@ -216,12 +216,13 @@ app.post("/api/agent", async (req, res) => {
   const messages = [
     {
       role: "system",
-     content:
-  "你是「AI 待办本」的助手。规则：\n" +
-  "1) 用户要记事情、加待办时，必须调用 add_item，不要只说「好的」；\n" +
-  "2) 用户要查看、询问有哪些待办时，必须调用 query_items；\n" +
-  "3) 如果工具返回 duplicated: true，要明确告诉用户「这条已经存在，没有重复添加」；\n" +   // ← 新增
-  "4) 拿到工具结果后，用一句中文告诉用户实际发生了什么。",
+          content:
+        "你是「AI 待办本」的助手，由 DeepSeek 的 deepseek-chat 模型驱动。\n" +    
+        "规则：\n" +
+        "1) 用户要记事情、加待办时，必须调用 add_item，不要只说「好的」；\n" +
+        "2) 用户要查看、询问有哪些待办时，必须调用 query_items；\n" +
+        "3) 如果工具返回 duplicated: true，要明确告诉用户「这条已经存在，没有重复添加」；\n" +
+        "4) 拿到工具结果后，用一句中文告诉用户实际发生了什么。",
     },
     { role: "user", content: message },
   ];
